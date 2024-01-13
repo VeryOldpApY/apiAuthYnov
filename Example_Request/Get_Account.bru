@@ -1,0 +1,17 @@
+meta {
+  name: Get_Account
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://127.0.0.1:5000/account
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "uid": "uid1"
+  }
+}

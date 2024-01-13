@@ -7,6 +7,7 @@ create table account
     id       integer not null
         constraint account_pm
             primary key autoincrement,
+    uid TEXT NOT NULL UNIQUE,
     username TEXT    not null
         constraint account_pk
             unique,
@@ -14,18 +15,19 @@ create table account
     token    TEXT    not null,
     status TINYINT DEFAULT 1    
 );
-INSERT INTO account (username, password, token, status)
-VALUES ('account_admin', 'password', 'token1', 1),
-('account_user', 'password', 'token2', 1);
+INSERT INTO account (username, uid, password, token, status)
+VALUES ('account_admin', 'uid1', 'password', 'token1', 1),
+('account_user', 'uid2', 'password', 'token2', 1);
 
 
 create table role
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uid TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL UNIQUE
 );
-INSERT INTO role (name)
-VALUES ('ROLE_ADMIN'), ('ROLE_USER');
+INSERT INTO role (name, uid)
+VALUES ('ROLE_ADMIN', 'uid1'), ('ROLE_USER', 'uid2');
 
 
 create table account_role
