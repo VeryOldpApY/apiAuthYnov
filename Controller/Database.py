@@ -15,7 +15,7 @@ def create_connection(db_file):
 
 def fixture():
 	bdd = create_connection(r"bdd.db")
-	fd = open("../schemaBdd.sql", 'r')
+	fd = open("schemaBdd.sql", 'r')
 	sql_file_content = fd.read()
 	fd.close()
 	cursor = bdd.cursor()
