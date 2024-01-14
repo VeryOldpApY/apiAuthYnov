@@ -5,9 +5,17 @@ create table account
     id       integer not null
         constraint account_pm
             primary key autoincrement,
-    username TEXT    not null
+    username text    not null
         constraint account_pk
             unique,
-    password TEXT    not null,
-    token    text    not null
+    password text    not null,
+    token    text    not null,
+    dateExpire_Token     text    not null,
+    refresh_token    text    not null,
+    dateExpire_RefreshToken     text    not null,
+    countErrorLogin integer default 0,
+    dateExpire_ErrorLogin     text    not null,
+    status text not null,
+    dateExpire_Status     text,
+    "from"    text
 );
