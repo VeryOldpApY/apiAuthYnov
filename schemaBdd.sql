@@ -7,18 +7,23 @@ create table account
     id       integer not null
         constraint account_pm
             primary key autoincrement,
-    uid TEXT NOT NULL UNIQUE,
-    username TEXT    not null
+    username text    not null
         constraint account_pk
             unique,
-    password TEXT    not null,
-    token    TEXT    not null,
-    status TINYINT DEFAULT 1    
+    password text    not null,
+    token    text    not null,
+    dateExpire_Token     text    not null,
+    refresh_token    text    not null,
+    dateExpire_RefreshToken     text    not null,
+    countErrorLogin integer default 0,
+    dateExpire_ErrorLogin     text    not null,
+    status text not null,   
+    dateExpire_Status     text,
+    "from"    text
 );
-INSERT INTO account (username, uid, password, token, status)
-VALUES ('account_admin', 'uid1', 'password', 'token1', 1),
-('account_user', 'uid2', 'password', 'token2', 1);
-
+INSERT INTO account (uid, username, password, token, dateExpire_Token, refresh_token, dateExpire_RefreshToken, countErrorLogin, dateExpire_ErrorLogin, status, )
+VALUES ('uid1', 'account_admin', 'password', 'token1', to_char(sysdate+1), 'refresh_token?', to_char(sysdate+1), 'dateExpire_ErrorLogin?', 'opened'),
+('uid2', 'account_user', 'password', 'token2', to_char(sysdate+1), 'refresh_token?', to_char(sysdate+1), 'dateExpire_ErrorLogin?', 'opened');
 
 create table role
 (
