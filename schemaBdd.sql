@@ -12,6 +12,8 @@ create table account
         constraint account_pk
             unique,
     password text not null,
+    createdAt text not null default current_timestamp,
+    updatedAt text not null default current_timestamp,
     token text not null,
     dateExpire_Token text not null,
     refresh_token text not null,
@@ -23,8 +25,8 @@ create table account
     "from" text
 );
 INSERT INTO account (uid, username, password, token, dateExpire_Token, refresh_token, dateExpire_RefreshToken, dateExpire_ErrorLogin, status)
-VALUES ('uid1', 'account_admin', 'password', 'token1', DATE('now','+1 day'), 'refresh_token?', DATE('now','+1 day'), 'dateExpire_ErrorLogin?', 'opened'),
-('uid2', 'account_user', 'password', 'token2', DATE('now','+1 day'), 'refresh_token?', DATE('now','+1 day'), 'dateExpire_ErrorLogin?', 'opened');
+VALUES ('uid1', 'account_admin', 'password', 'token1', DATE('now','+1 day'), 'refresh_token?', DATE('now','+1 day'), 'dateExpire_ErrorLogin?', 'open'),
+('uid2', 'account_user', 'password', 'token2', DATE('now','+1 day'), 'refresh_token?', DATE('now','+1 day'), 'dateExpire_ErrorLogin?', 'open');
 
 
 create table role
