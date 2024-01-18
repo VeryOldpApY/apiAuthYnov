@@ -12,35 +12,132 @@ route_blueprint = Blueprint('account', __name__)
 # GET account
 @route_blueprint.route("/account", methods=["GET"])
 def getAccount():
-	param = request.get_json()
-	uid = param["uid"]
-	if uid is None:
-		return returnAPIFormat(data=None, link=request.path, method=request.method, status=422, message="Parameters Error")
-	
-	sql = "SELECT uid, username FROM account WHERE uid = ?"
-	dataAccount = Database.request(sql, (uid,))
-	if dataAccount is None:
-		return returnAPIFormat(data=None, link=request.path, method=request.method, status=422, message="SQL Error")
-	
-	data = {
-		"uid": dataAccount[0][0],
-		"username": dataAccount[0][1],
-		"role": []
-	}
-
-    # SELECT account's roles
-	sql = """SELECT r.uid, r.name FROM role r, account_role ar
-	WHERE ar.account_id = (SELECT id FROM account WHERE uid = ?)
-	AND r.id = ar.role_id
-	"""
-	dataRole = Database.request(sql, (uid,))
-	if dataRole is None:
-		return returnAPIFormat(data=None, link=request.path, method=request.method, status=422, message="SQL Error")
-	
-	for i in dataRole:
-		data["role"].append(i[1])
+	# try: # A ENLEVER LORS DU DEBUG
+		param = request.get_json()
+		uid = param["uid"]
+		userToken = param["userToken"]
+		if uid is None or userToken is None:
+			return returnAPIFormat(data=None, link=request.path, method=request.method, status=422, message="Parameters Error")
 		
-	return returnAPIFormat(data=data, link=request.path, method=request.method)
+		# SELECT l'user par le token + verif si token est toujours valide
+		sql = """SELECT id, uid, username, createdAt, updatedAt, CASE WHEN dateExpire_Token > current_timestamp THEN 1
+		WHEN dateExpire_Token <= current_timestamp THEN 0 END FROM account WHERE token = ?
+		"""
+		dataUser = Database.request(sql, (userToken,))
+		if dataUser is None:
+			return returnAPIFormat(data=None, link=request.path, method=request.method, status=422, message="SQL Error 1")
+		if not dataUser:
+			return returnAPIFormat(data=None, link=request.path, method=request.method, status=422, message="Token error")
+
+		if dataUser[0][5] == 0:
+			return returnAPIFormat(data=None, link=request.path, method=request.method, status=422, message="Token plus valide")
+
+		# SELECT les roles de l'user
+		sql = "SELECT name FROM role r, account_role ar WHERE ar.account_id = ? AND r.id = ar.role_id"
+		data = Database.request(sql, (dataUser[0][0],))
+		if data is None:
+			return returnAPIFormat(data=None, link=request.path, method=request.method, status=422, message="SQL Error 2")
+		
+		roleAdmin = False
+		for i in data:
+			if (i[0] == 'ROLE_ADMIN'):
+				roleAdmin = True
+				break
+
+
+		if roleAdmin == False:	# SI USER N'EST PAS ADMIN
+			
+			if uid != "me":
+				# SELECT le compte demandé
+				sql = "SELECT uid, username, createdAt, updatedAt FROM account WHERE uid = ?"
+				dataAccount = Database.request(sql, (uid,))
+				if dataAccount is None:
+					return returnAPIFormat(data=None, link=request.path, method=request.method, status=422, message="SQL Error 3")
+				if not dataAccount:
+					return returnAPIFormat(data=None, link=request.path, method=request.method, status=404)
+		
+				# VERIF si c'est bien le même compte demandé que celui utilisé
+				if dataAccount[0][0] != dataUser[0][1]:
+					return returnAPIFormat(data=None, link=request.path, method=request.method, status=404) # 404 car on ne veut pas montrer qu'il y a bien un account avec cet uid
+				
+				data = {
+					"uid": dataAccount[0][0],
+					"username": dataAccount[0][1],
+					"role": [],
+					"createdAt": dataAccount[0][2],
+					"updatedAt": dataAccount[0][3]
+				}
+				bonUid = dataAccount[0][0]
+
+			else:	# SI uid = "me", pas besoin de select
+				data = {
+					"uid": dataUser[0][1],
+					"username": dataUser[0][2],
+					"role": [],
+					"createdAt": dataUser[0][3],
+					"updatedAt": dataUser[0][4]
+				}
+				bonUid = dataUser[0][1]
+
+			# SELECT account's roles
+			sql = """SELECT r.uid, r.name FROM role r, account_role ar
+			WHERE ar.account_id = (SELECT id FROM account WHERE uid = ?)
+			AND r.id = ar.role_id
+			"""
+			dataRole = Database.request(sql, (bonUid,))
+			if dataRole is None:
+				return returnAPIFormat(data=None, link=request.path, method=request.method, status=422, message="SQL Error 4")
+				
+			for i in dataRole:
+				data["role"].append(i[1])
+					
+			return returnAPIFormat(data=data, link=request.path, method=request.method)
+
+
+		else:	# SI USER EST ADMIN
+
+			if uid != "me":
+				# SELECT le compte demandé
+				sql = "SELECT uid, username, createdAt, updatedAt FROM account WHERE uid = ?"
+				dataAccount = Database.request(sql, (uid,))
+				if dataAccount is None:
+					return returnAPIFormat(data=None, link=request.path, method=request.method, status=422, message="SQL Error 5")
+
+				data = {
+					"uid": dataAccount[0][0],
+					"username": dataAccount[0][1],
+					"role": [],
+					"createdAt": dataAccount[0][2],
+					"updatedAt": dataAccount[0][3]
+				}
+				bonUid = dataAccount[0][0]
+			
+			else:	# SI uid = "me", pas besoin de select
+				data = {
+					"uid": dataUser[0][1],
+					"username": dataUser[0][2],
+					"role": [],
+					"createdAt": dataUser[0][3],
+					"updatedAt": dataUser[0][4]
+				}
+				bonUid = dataUser[0][1]
+
+			# SELECT account's roles
+			sql = """SELECT r.uid, r.name FROM role r, account_role ar
+			WHERE ar.account_id = (SELECT id FROM account WHERE uid = ?)
+			AND r.id = ar.role_id
+			"""
+			dataRole = Database.request(sql, (bonUid,))
+			if dataRole is None:
+				return returnAPIFormat(data=None, link=request.path, method=request.method, status=422, message="SQL Error 6")
+				
+			for i in dataRole:
+				data["role"].append(i[1])
+
+			return returnAPIFormat(data=data, link=request.path, method=request.method)
+
+	# except: # A ENLEVER LORS DU DEBUG
+	# 	return returnAPIFormat(data=None, link=request.path, method=request.method, status=404)
 
 
 # POST account
