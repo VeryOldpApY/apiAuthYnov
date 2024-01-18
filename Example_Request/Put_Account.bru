@@ -1,0 +1,23 @@
+meta {
+  name: Put_Account
+  type: http
+  seq: 3
+}
+
+put {
+  url: http://127.0.0.1:5000/account
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "uid": "uid1",
+    "username": "AAAA",
+    "password": "AAA",
+    "roles": [
+      "ROLE_USER"
+    ],
+    "status": "open"
+  }
+}
